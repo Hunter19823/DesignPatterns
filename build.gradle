@@ -1,0 +1,284 @@
+// ############################
+//            Plugins
+// ############################
+plugins {
+    id "java"
+    id "java-library"
+}
+
+// ############################
+//         Project Info
+// ############################
+group "pie.ilikepiefoo"
+version "1.0-SNAPSHOT"
+
+// ############################
+//  Supported Design Patterns
+// ############################
+def creational = [
+        "abstractFactory",
+        "builder",
+        "dependecyInjection",
+        "factoryMethod",
+        "lazyInitialization",
+        "multiton",
+        "objectPool",
+        "prototype",
+        "resourceAcquisitionIsInitialization",
+        "singleton"
+]
+def structural = [
+        "adapter",
+        "wrapper",
+        "translator",
+        "bridge",
+        "composite",
+        "decorator",
+        "delegation",
+        "extensionObject",
+        "facade",
+        "flyweight",
+        "frontController",
+        "marker",
+        "module",
+        "proxy",
+        "twin"
+]
+def behavioral = [
+        "blackboard",
+        "chainOfResponsibility",
+        "command",
+        "interpreter",
+        "iterator",
+        "mediator",
+        "memento",
+        "nullObject",
+        "observer",
+        "publishSubscribe",
+        "servant",
+        "specification",
+        "state",
+        "strategy",
+        "templateMethod",
+        "visitor",
+        "fluentInterface"
+]
+
+def concurrent = [
+        "activeObject",
+        "balking",
+        "bindingProperties",
+        "computeKernal",
+        "doubleCheckedLocking",
+        "eventBasedAsynchronous",
+        "guardedSuspension",
+        "join",
+        "lock",
+        "messaging",
+        "monitorObject",
+        "reactor",
+        "readWriteLock",
+        "scheduler",
+        "threadPool",
+        "threadSpecificStorage",
+        "safeConcurrencyWithExclusiveOwnership",
+        "cpuAtomicOperation"
+]
+
+def getJavaFolderPath(String patternName, String groupName) {
+    return "${groupName.toLowerCase()}/src/${patternName.toLowerCase()}/java"
+}
+
+def getGradleTaskName(String patternName, String groupName) {
+    return "${groupName}_${patternName}"
+}
+
+// ############################
+//     Project Configuration
+// ############################
+sourceSets {
+    // ############################
+    //  Creational Design Patterns
+    // ############################
+    creational.each(pattern -> {
+        "${pattern}" {
+            java {
+                srcDir getJavaFolderPath(pattern, "Creational")
+            }
+        }
+    })
+
+    // ############################
+    //  Structural Design Patterns
+    // ############################
+    structural.each(pattern -> {
+        "${pattern}" {
+            java {
+                srcDir getJavaFolderPath(pattern, "Structural")
+            }
+        }
+    })
+
+
+    // ############################
+    //  Behavioral Design Patterns
+    // ############################
+    behavioral.each(pattern -> {
+        "${pattern}" {
+            java {
+                srcDir getJavaFolderPath(pattern, "Behavioral")
+            }
+        }
+    })
+
+    // ############################
+    //  Concurrent Design Patterns
+    // ############################
+    concurrent.each(pattern -> {
+        "${pattern}" {
+            java {
+                srcDir getJavaFolderPath(pattern, "Concurrent")
+            }
+        }
+    })
+}
+
+// ############################
+//        Repositories
+// ############################
+repositories {
+    mavenCentral()
+}
+
+// ############################
+//        Dependencies
+// ############################
+dependencies {
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.8.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.8.1"
+}
+
+// ############################
+//      Test Configuration
+// ############################
+test {
+    useJUnitPlatform()
+}
+
+// ############################
+//        Tasks
+// ############################
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+// Function to register a task for each pattern
+def registerTaskForPattern(String patternName, String groupName) {
+    tasks.register(getGradleTaskName(patternName, groupName), JavaExec) {
+        group = groupName
+        description = "Run the $patternName pattern"
+
+        classpath = sourceSets.getByName(patternName).runtimeClasspath
+
+        mainClass = project.group + "." + patternName + ".Main"
+
+        standardInput = System.in
+
+        doFirst {
+            println "Running $patternName pattern"
+        }
+        doLast {
+            println "Finished running $patternName pattern"
+        }
+    }
+}
+// Register a task for each pattern
+creational.each { registerTaskForPattern(it, "Creational") }
+structural.each { registerTaskForPattern(it, "Structural") }
+behavioral.each { registerTaskForPattern(it, "Behavioral") }
+concurrent.each { registerTaskForPattern(it, "Concurrent") }
+
+tasks.register("Creational") {
+    group = "Creational"
+    description = "Run all creational patterns"
+    creational.each { pattern ->
+        dependsOn(getGradleTaskName(pattern, "Creational"))
+    }
+}
+
+tasks.register("Structural") {
+    group = "Structural"
+    description = "Run all structural patterns"
+    structural.each { pattern ->
+        dependsOn(getGradleTaskName(pattern, "Structural"))
+    }
+}
+
+tasks.register("Behavioral") {
+    group = "Behavioral"
+    description = "Run all behavioral patterns"
+    behavioral.each { pattern ->
+        dependsOn(getGradleTaskName(pattern, "Behavioral"))
+    }
+}
+
+tasks.register("Concurrent") {
+    group = "Concurrent"
+    description = "Run all concurrent patterns"
+    concurrent.each { pattern ->
+        dependsOn(getGradleTaskName(pattern, "Concurrent"))
+    }
+}
+
+tasks.register("All") {
+    group = "All"
+    description = "Run all patterns"
+    dependsOn("Creational")
+    dependsOn("Structural")
+    dependsOn("Behavioral")
+    dependsOn("Concurrent")
+}
+
+def createProjectFiles(String patternName, String groupName) {
+    String folderName = getJavaFolderPath(patternName, groupName) + "/${project.group}" + "/" + patternName
+    if (file("${folderName}/Main.java").exists()) {
+        println "Project files for $patternName already exist"
+    } else {
+        println "Creating project files for $patternName"
+        file("${folderName}").mkdirs()
+        file("${folderName}/Main.java").createNewFile()
+        file("${folderName}/Main.java").write("""
+            package ${project.group}.$patternName;
+            
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello World!");
+                }
+            }
+        """.stripIndent(), "UTF-8")
+    }
+}
+
+tasks.register("SetupProjectFiles") {
+    group = "build setup"
+    description = "Setup the project files for all the design patterns"
+
+    doLast {
+        println "Setting up project files for all design patterns"
+        creational.each { pattern ->
+            createProjectFiles(pattern, "Creational")
+        }
+        structural.each { pattern ->
+            createProjectFiles(pattern, "Structural")
+        }
+        behavioral.each { pattern ->
+            createProjectFiles(pattern, "Behavioral")
+        }
+        concurrent.each { pattern ->
+            createProjectFiles(pattern, "Concurrent")
+        }
+    }
+}
+
+
+
