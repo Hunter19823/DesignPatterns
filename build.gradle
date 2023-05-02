@@ -86,7 +86,7 @@ def concurrent = [
 ]
 
 def getJavaFolderPath(String patternName, String groupName) {
-    return "${groupName.toLowerCase()}/src/${patternName.toLowerCase()}/java"
+    return "${groupName.toLowerCase()}/src/${patternName.toLowerCase()}/java".replace(".", "/")
 }
 
 def getGradleTaskName(String patternName, String groupName) {
@@ -241,6 +241,7 @@ tasks.register("All") {
 
 def createProjectFiles(String patternName, String groupName) {
     String folderName = getJavaFolderPath(patternName, groupName) + "/${project.group}" + "/" + patternName
+    folderName = folderName.replace(".", "/")
     if (file("${folderName}/Main.java").exists()) {
         println "Project files for $patternName already exist"
     } else {
